@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>主演简介</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html,body {
+            background: transparent;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            color: #22223b;
+            overflow-x: hidden;
+        }
+        .bg-slider {
+            position: fixed;
+            z-index: -1;
+            left: 0; top: 0; width: 100vw; height: 100vh;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .bg-slide-img {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            object-fit: cover;
+            transition:
+                transform 2s cubic-bezier(.77,0,.18,1),
+                opacity 2s cubic-bezier(.77,0,.18,1);
+            opacity: 1;
+        }
+        .center-outer {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .main-wrap {
+            max-width: 760px;
+            width: 90vw;
+            margin: 40px auto 0 auto;
+            background: rgba(255,255,255,0.5);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(100, 100, 200, 0.08);
+            padding: 36px 20px 24px 20px;
+            transition: height 0.25s;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 32px;
+            font-size: 1.08rem;
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: bold;
+            border-bottom: 1.5px dashed #e0e7ff;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: background 0.13s;
+        }
+        .back-link:hover {
+            background: #e0e7ff;
+        }
+        .section {
+            margin-bottom: 24px;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px #ede9fe66;
+        }
+        .section-header {
+            font-size: 1.7rem;
+            font-weight: 700;
+            padding: 18px 18px 12px 18px;
+            cursor: pointer;
+            background: linear-gradient(90deg,rgba(121,86,208,0.45) 70%, rgba(246,182,234,0.22) 100%);
+            color: #6366f1;
+            letter-spacing: 2px;
+            transition: background 0.18s;
+            border-bottom: 1.5px solid rgba(121,86,208,0.15);
+        }
+        .section-header:hover {
+            background: linear-gradient(90deg,rgba(180,166,240,0.45) 60%, rgba(252,231,243,0.3) 100%);
+        }
+        .section-content {
+            padding: 0 22px 18px 22px;
+            display: none;
+            font-size: 1.13rem;
+            line-height: 1.78;
+            color: #292948;
+            background: rgba(255,255,255,0.55);
+            animation: fadein 0.24s;
+            border-radius: 0 0 13px 13px;
+            border: 1.5px solid rgba(121,86,208,0.10);
+            box-shadow: 0 3px 16px 0 rgba(121,86,208,0.08) inset, 0 1.5px 9px 0 rgba(121,86,208,0.09) inset;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .section.open .section-content {
+            display: block;
+        }
+        @keyframes fadein {
+            0% { opacity: 0; transform: translateY(-8px);}
+            100% { opacity: 1; transform: translateY(0);}
+        }
+        .highlight { color: #e11d48; font-weight: bold; background: #fce7f3; padding: 0 4px; border-radius: 5px;}
+        .lightblue { color: #6366f1; font-weight: bold;}
+        ul,ol { margin: 8px 0 8px 22px; }
+        li { margin: 0 0 6px 0;}
+        @media (max-width:600px) {
+            .main-wrap {padding: 12px 3vw;}
+            .section-header {font-size: 1.19rem;}
+            .section-content {font-size: 0.97rem;}
+            .center-outer {padding: 16px 0;}
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景轮播部分 -->
+    <div class="bg-slider">
+        <img class="bg-slide-img" id="bg1" src="starbg1.png" alt="" style="z-index:1;">
+        <img class="bg-slide-img" id="bg2" src="starbg2.png" alt="" style="z-index:0;">
+        <img class="bg-slide-img" id="bg3" src="starbg3.png" alt="" style="z-index:0;">
+    </div>
+    <div class="center-outer">
+        <div class="main-wrap">
+            <a class="back-link" href="主页代码.html" data-i18n="backHome">&lt; 返回主页</a>
+            <div class="section" id="sec-exp">
+                <div class="section-header" onclick="toggleSection('sec-exp')" data-i18n="sections.career">经历</div>
+                <div class="section-content">
+                    <ul id="careerList"></ul>
+                </div>
+            </div>
+            <div class="section" id="sec-char">
+                <div class="section-header" onclick="toggleSection('sec-char')" data-i18n="sections.bio">人物</div>
+                <div class="section-content">
+                    <ul id="bioList"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 控制折叠展开
+        function toggleSection(id) {
+            const sec = document.getElementById(id);
+            if (sec.classList.contains('open')) {
+                sec.classList.remove('open');
+            } else {
+                sec.classList.add('open');
+            }
+        }
+        // 背景滑动轮播
+        const bgImgs = [
+            document.getElementById('bg1'),
+            document.getElementById('bg2'),
+            document.getElementById('bg3')
+        ];
+        let current = 0;
+        function slideToNext() {
+            const prev = current;
+            const next = (current + 1) % bgImgs.length;
+            bgImgs[next].style.transition = 'none';
+            bgImgs[next].style.transform = 'translateX(100vw)';
+            bgImgs[next].style.opacity = '1';
+            bgImgs[next].style.zIndex = 2;
+
+            setTimeout(() => {
+                bgImgs[prev].style.transition = 'transform 2s cubic-bezier(.77,0,.18,1), opacity 2s cubic-bezier(.77,0,.18,1)';
+                bgImgs[next].style.transition = 'transform 2s cubic-bezier(.77,0,.18,1), opacity 2s cubic-bezier(.77,0,.18,1)';
+                bgImgs[prev].style.transform = 'translateX(-100vw)';
+                bgImgs[prev].style.opacity = '0.5';
+                bgImgs[next].style.transform = 'translateX(0)';
+                bgImgs[next].style.opacity = '1';
+
+                setTimeout(() => {
+                    bgImgs[prev].style.transition = 'none';
+                    bgImgs[prev].style.transform = 'translateX(0)';
+                    bgImgs[prev].style.opacity = '1';
+                    bgImgs[prev].style.zIndex = 0;
+                    bgImgs[next].style.zIndex = 1;
+                    current = next;
+                    setTimeout(slideToNext, 4000);
+                }, 2000);
+            }, 30);
+        }
+        setTimeout(slideToNext, 4000);
+    </script>
+    <script src="translations.js"></script>
+    <script>
+        // 多语言内容渲染
+        let currentLang = localStorage.getItem("lang") || "zh-CN";
+        function renderProfile(lang) {
+            const dict = i18n[lang];
+            // 经历
+            const cUl = document.getElementById('careerList');
+            cUl.innerHTML = '';
+            (dict.sections.careerContent||[]).forEach(txt=>{
+                const li = document.createElement('li');
+                li.innerHTML = txt; cUl.appendChild(li);
+            });
+            // 人物
+            const bUl = document.getElementById('bioList');
+            bUl.innerHTML = '';
+            (dict.sections.bioContent||[]).forEach(txt=>{
+                const li = document.createElement('li');
+                li.innerHTML = txt; bUl.appendChild(li);
+            });
+        }
+        function switchLang(lang){
+            renderProfile(lang);
+            const dict = i18n[lang];
+            document.querySelectorAll("[data-i18n]").forEach(el=>{
+                const key = el.getAttribute("data-i18n");
+                if(key.startsWith("nav")){
+                }else if(key.includes(".")){
+                    const val = key.split('.').reduce((o,k)=>o?.[k],dict);
+                    if(val && !el.id.endsWith('List')) el.textContent = val;
+                }else{
+                    if(dict[key]) el.textContent = dict[key];
+                }
+            });
+        }
+        switchLang(currentLang);
+        window.addEventListener("storage", e=>{
+            if(e.key === "lang"){
+                switchLang(e.newValue || "zh-CN");
+            }
+        });
+    </script>
+</body>
+</html>
